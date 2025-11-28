@@ -4,37 +4,9 @@ import { useState, useEffect } from 'react';
 // src/data/hikes.js
 export const hikes = [
   {
+    
+  {
     id: 1,
-    title: "Montagne de l'Aurès",
-    location: "Aurès, Algérie",
-    difficulty: "Moyen",
-    date: "2025-07-12",
-    distance: "12 km",
-    duration: "5h",
-    altitude: "1800m",
-    cover: "/amine.png",
-    images: ["/amine.png", "/amine1.jpg"],
-    description: "Randonnée incroyable avec vues panoramiques sur les montagnes de l'Aurès.",
-    review: "Superbe expérience, prévoir de l'eau et des snacks.",
-    advice: "Porter des chaussures adaptées, éviter après pluie."
-  },
-  {
-    id: 2,
-    title: "Chaine de l’Atlas",
-    location: "Atlas, Algérie",
-    difficulty: "Difficile",
-    date: "2025-06-20",
-    distance: "15 km",
-    duration: "7h",
-    altitude: "2500m",
-    cover: "/amine1.jpg",
-    images: ["/amine1.jpg", "/amine.png"],
-    description: "Ascension technique avec paysages grandioses.",
-    review: "Exigeant mais très gratifiant.",
-    advice: "Apporter bâtons de randonnée et vêtements chauds."
-  },
-  {
-    id: 1764277417150,
     title: "Télésiège de Tikjda",
     location: "Tizi Ouzou",
     difficulty: "Moyen",
@@ -54,7 +26,7 @@ export const hikes = [
       "Chaussures de randonnée, vêtements chauds, vérifier les horaires du télésiège, rester sur les sentiers balisés."
   },
   {
-    id: 1764286305555,
+    id: 2,
     title: "Camping Lac Noir – Akfadou",
     location: "Lac Noir, Akfadou, Béjaïa",
     altitude: "1100 m",
@@ -102,3 +74,4 @@ export function useHikes() {
 
   return { hikes, loading, defaultHikes };
 }
+
