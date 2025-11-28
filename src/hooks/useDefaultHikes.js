@@ -10,16 +10,8 @@ export const defaultHikes = [
     distance: "10km",
     duration: "2h",
     altitude: "1100m",
-    cover: `${images[0]}?v=2`, // versionné pour forcer le rechargement
-    images: [
-      `${images[0]}?v=2`,
-      `${images[1]}?v=2`,
-      `${images[2]}?v=2`,
-      `${images[3]}?v=2`,
-      `${images[4]}?v=2`,
-      `${images[5]}?v=2`,
-      `${images[6]}?v=2`
-    ],
+    cover: images[0],
+    images: [images[0], images[1], images[2], images[3], images[4], images[5], images[6]],
     description:
       "Le Lac Noir à Akfadou, à 1 100 m d’altitude, est un endroit paisible et parfait pour un camping de 2 jours. Le site est entouré de pins et de montagnes, idéal pour se détendre et randonner.",
     review: "Endroit calme et ressourçant, idéal pour un weekend nature.",
@@ -36,12 +28,8 @@ export const defaultHikes = [
     distance: "12 km",
     duration: "2h",
     altitude: "1800m",
-    cover: `${images[14]}?v=2`,
-    images: [
-      `${images[7]}?v=2`,
-      `${images[8]}?v=2`,
-      `${images[9]}?v=2`
-    ],
+    cover: images[14],
+    images: [images[7], images[8], images[9]],
     description:
       "La randonnée commence depuis la station du télésiège de Tikjda. Vous montez en télésiège pour profiter d’une vue panoramique sur les montagnes du Djurdjura. L’itinéraire traverse des forêts de cèdres et des pâturages alpins avec des panoramas magnifiques.",
     review:
@@ -49,5 +37,6 @@ export const defaultHikes = [
     advice:
       "Chaussures de randonnée, vêtements chauds, vérifier les horaires du télésiège, rester sur les sentiers balisés."
   },
+
 
 ];
