@@ -46,35 +46,4 @@ export const defaultHikes = [
       "Chaussures de randonnée, vêtements chauds, vérifier les horaires du télésiège, rester sur les sentiers balisés."
   },
 
-  {
-    id: 3,
-    title: "Pic du Tassili",
-    location: "Tassili n'Ajjer, Algérie",
-    difficulty: "Facile",
-    date: "2025-05-15",
-    distance: "8 km",
-    duration: "3h",
-    altitude: "1200m",
-    cover: images[2],
-    images: [images[2], images[3], images[4]],
-    description: "Une randonnée facile parfaite pour débuter.",
-    review: "Très accessible et agréable.",
-    advice: "Apportez protection solaire et chapeau."
-  },
-
-  {
-    id: 4,
-    title: "Mont Djelifa",
-    location: "Kabylie, Algérie",
-    difficulty: "Moyen",
-    date: "2025-08-10",
-    distance: "10 km",
-    duration: "4h",
-    altitude: "1600m",
-    cover: images[3],
-    images: [images[3], images[4], images[0]],
-    description: "Randonnée dans la forêt de Kabylie.",
-    review: "Un vrai coup de cœur ! Faune et flore variées.",
-    advice: "Apporter repellent anti-insectes."
-  }
-];
+  
