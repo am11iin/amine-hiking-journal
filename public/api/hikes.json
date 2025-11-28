@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "title": "Montagne de l'Aurès",
+    "location": "Aurès, Algérie",
+    "difficulty": "Moyen",
+    "date": "2025-07-12",
+    "distance": "12 km",
+    "duration": "5h",
+    "altitude": "1800m",
+    "cover": "/amine.png",
+    "description": "Une randonnée magnifique à travers les montagnes de l'Aurès avec des vues à couper le souffle.",
+    "review": "Expérience incroyable avec des paysages à couper le souffle.",
+    "advice": "Prévoir des vêtements chauds même en été."
+  },
+  {
+    "id": 2,
+    "title": "Djurdjura",
+    "location": "Kabylie, Algérie",
+    "difficulty": "Difficile",
+    "date": "2025-08-15",
+    "distance": "18 km",
+    "duration": "7h",
+    "altitude": "2300m",
+    "cover": "/amine1.jpg",
+    "description": "Ascension du Djurdjura avec ses paysages alpins uniques en Algérie.",
+    "review": "Défi physique mais la récompense en vaut la peine.",
+    "advice": "Partez tôt pour éviter les orages d'après-midi."
+  },
+  {
+    "id": 3,
+    "title": "Tassili N'Ajjer",
+    "location": "Djanet, Algérie",
+    "difficulty": "Expert",
+    "date": "2025-09-20",
+    "distance": "50 km",
+    "duration": "5 jours",
+    "altitude": "2500m",
+    "cover": "/amine.png",
+    "description": "Expédition dans le désert du Tassili N'Ajjer, célèbre pour ses formations rocheuses uniques et son art rupestre.",
+    "review": "Une aventure inoubliable dans le désert algérien.",
+    "advice": "Prévoir suffisamment d'eau et de protection solaire."
+  }
+]

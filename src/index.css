@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  /* Utilise la couleur de fond primaire définie dans la configuration Tailwind (doit être sombre) */
+  @apply bg-primary;
+  font-family: 'Inter', sans-serif;
+  /* Assure que la couleur de base du texte est beige */
+  @apply text-beige;
+}
+
+/* Classes personnalisées */
+@layer components {
+  /* Bouton Primaire (Couleur accent sur fond primary) */
+  .btn-primary {
+    /* Le texte doit contraster avec l'accent (vert). Si primary est sombre, cela fonctionne. */
+    @apply px-8 py-3 bg-accent rounded-xl text-primary font-bold transition-all duration-300 transform active:scale-95 shadow-lg shadow-accent/20;
+  }
+  .btn-primary:hover {
+    /* Utilise une nuance de accent ou l'accent lui-même */
+    @apply bg-accent/90 scale-[1.02];
+    /* Référence à la couleur accent (vert) pour l'ombre */
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+  }
+
+  /* Bouton Secondaire (Bordure accent sur fond primary) */
+  .btn-secondary {
+    /* Texte en accent, bordure en accent, fond transparent */
+    @apply px-8 py-3 border-2 border-accent rounded-xl text-accent font-bold transition-all duration-300 transform active:scale-95 bg-transparent;
+  }
+  .btn-secondary:hover {
+    /* Inverse les couleurs au survol */
+    @apply bg-accent text-primary scale-[1.02];
+  }
+
+  /* Base des Cartes (Style sombre/verre dépoli) */
+  .card-base {
+    /* Utilise une version semi-transparente du fond primary pour l'effet de verre dépoli */
+    @apply bg-primary/70 rounded-2xl shadow-xl border border-accent/10 backdrop-blur-sm transition-all duration-300;
+  }
+  .card-base:hover {
+    @apply border-accent/30;
+    /* Référence à la couleur accent pour l'ombre subtile au survol */
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+  }
+
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+  .card-hover:hover {
+    @apply border-accent/50;
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Titre de Section */
+  .section-title {
+    /* Assurez-vous que le titre principal est en accent */
+    @apply text-5xl md:text-6xl font-black text-accent mb-3 text-center;
+  }
+
+  /* Sous-titre de Section */
+  .section-subtitle {
+    @apply text-center text-beige/70 mb-12 text-lg md:text-xl;
+  }
+
+  /* Champ de Saisie */
+  .input-field {
+    @apply w-full p-4 rounded-xl bg-primary/40 border border-accent/20 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-block px-4 py-2 bg-accent/20 border border-accent/50 rounded-full text-accent text-sm font-semibold;
+  }
+
+  /* Texte Dégradé */
+  .gradient-text {
+    /* Remplacer green-400 par une nuance de accent ou beige pour la cohérence */
+    @apply bg-gradient-to-r from-accent to-beige bg-clip-text text-transparent;
+  }
+}
