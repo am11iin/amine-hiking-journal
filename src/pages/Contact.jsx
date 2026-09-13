@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, CheckCircle, XCircle, Instagram, Music, MessageCircle, Linkedin, Mail, Loader2 } from 'lucide-react';
+import { Send, CheckCircle, XCircle, Instagram, Music, MessageCircle, Linkedin, Mail, Loader2, Activity } from 'lucide-react';
 
 const CARD_CLASS = "bg-primary/50 border border-accent/20 backdrop-blur-md rounded-3xl";
 const INPUT_CLASS = "w-full p-4 rounded-xl bg-primary/70 text-beige border border-accent/20 focus:outline-none focus:ring-2 focus:ring-accent/80 transition-all placeholder-beige/50";
@@ -46,7 +46,8 @@ export default function Contact() {
 
   const socialLinks = [
     { name: "Instagram", icon: Instagram, url: "https://www.instagram.com/_amx_ne/", color: "hover:text-pink-400 hover:border-pink-500/40" },
-    { name: "TikTok", icon: Music, url: "https://www.tiktok.com/@_aminnnne", color: "hover:text-gray-200 hover:border-gray-400/40" },
+    { name: "TikTok", icon: Music, url: "https://www.tiktok.com/@_aminnnnee", color: "hover:text-gray-200 hover:border-gray-400/40" },
+    { name: "Strava", icon: Activity, url: "https://strava.app.link/TnVssSHoo6b", color: "hover:text-orange-400 hover:border-orange-500/40" },
     { name: "WhatsApp", icon: MessageCircle, url: "https://wa.me/", color: "hover:text-green-400 hover:border-green-500/40" },
     { name: "LinkedIn", icon: Linkedin, url: "https://www.linkedin.com/in/mohamed-amine-sellami-19686b350/", color: "hover:text-blue-400 hover:border-blue-500/40" },
   ];

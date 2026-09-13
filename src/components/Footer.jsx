@@ -1,9 +1,8 @@
 import React from 'react';
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Instagram, Music, MessageCircle, ArrowUp, Mail, BookOpen, Heart } from "lucide-react";
+import { Instagram, Music, MessageCircle, ArrowUp, Mail, BookOpen, Heart, Activity } from "lucide-react";
 
-// Configuration pour l'animation des éléments (apparition progressive)
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
   visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } }
@@ -12,23 +11,22 @@ const itemVariants = {
 export default function Footer() {
   const socialLinks = [
     { name: "Instagram", icon: <Instagram size={20} />, url: "https://www.instagram.com/_amx_ne/" },
-    { name: "TikTok", icon: <Music size={20} />, url: "https://www.tiktok.com/@_aminnnne" },
+    { name: "TikTok", icon: <Music size={20} />, url: "https://www.tiktok.com/@_aminnnnee" },
+    { name: "Strava", icon: <Activity size={20} />, url: "https://strava.app.link/TnVssSHoo6b" },
   ];
   
   const resourceLinks = [
-    { name: "Blog de Rando", url: "/blog", icon: <BookOpen size={16} /> },
-    { name: "Nos Valeurs", url: "/values", icon: <Heart size={16} /> },
+    { name: "Blog de Rando", url: "/hikes", icon: <BookOpen size={16} /> },
+    { name: "Nos Valeurs", url: "/portfolio", icon: <Heart size={16} /> },
   ];
 
-  // Fonction de défilement vers le haut (aucune modification)
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
-    console.log("Inscription newsletter simulée.");
-    alert("Merci pour votre inscription !");
+    alert("Merci pour votre inscription à la newsletter !");
   };
 
   return (
@@ -44,7 +42,6 @@ export default function Footer() {
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-10">
           
-          {/* 1. Brand & Contact Rapide */}
           <motion.div 
             className="col-span-2 md:col-span-1"
             variants={itemVariants}
@@ -52,18 +49,17 @@ export default function Footer() {
             <p className="text-2xl font-extrabold text-accent mb-2">Amine Hiking</p>
             <p className="text-sm text-beige/70 mb-4">L'aventure au quotidien, avec style.</p>
             <a 
-              href="https://wa.me/votre_numero" 
+              href="https://wa.me/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg text-sm hover:bg-green-600 transition-all shadow-lg transform hover:scale-[1.03]"
-              title="Contactez-moi directement sur WhatsApp"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg text-sm hover:bg-green-700 transition-all shadow-lg transform hover:scale-[1.03]"
+              title="Contactez-moi directement"
             >
               <MessageCircle size={16} /> 
               Discutons Rando
             </a>
           </motion.div>
 
-          {/* 2. Navigation */}
           <motion.div variants={itemVariants}>
             <h4 className="text-xs font-bold uppercase tracking-widest text-beige/80 mb-4">Navigation Rapide</h4>
             <div className="space-y-3">
@@ -74,7 +70,6 @@ export default function Footer() {
             </div>
           </motion.div>
 
-          {/* 3. Ressources & Légal */}
           <motion.div variants={itemVariants}>
             <h4 className="text-xs font-bold uppercase tracking-widest text-beige/80 mb-4">Ressources & Support</h4>
             <div className="space-y-3">
@@ -83,16 +78,12 @@ export default function Footer() {
                     {link.icon} {link.name}
                 </Link>
               ))}
-              <Link to="/legal" className="text-sm text-beige/60 hover:text-accent transition-all hover:translate-x-1">Mentions Légales</Link>
-              <Link to="/privacy" className="text-sm text-beige/60 hover:text-accent transition-all hover:translate-x-1">Politique de Confidentialité</Link>
             </div>
           </motion.div>
 
-          {/* 4. Newsletter & Socials */}
           <motion.div variants={itemVariants}>
             <h4 className="text-xs font-bold uppercase tracking-widest text-beige/80 mb-4">Restez Connecté</h4>
             
-            {/* Formulaire de Newsletter */}
             <form onSubmit={handleNewsletterSubmit} className="space-y-3">
               <p className="text-sm text-beige/70">Ne manquez aucune nouvelle expédition.</p>
               <div className="relative">
@@ -114,7 +105,6 @@ export default function Footer() {
               </motion.button>
             </form>
             
-            {/* Liens Sociaux et Bouton Admin */}
             <div className="flex items-center gap-4 mt-6"> 
               {socialLinks.map((link) => (
                 <a 
@@ -129,7 +119,6 @@ export default function Footer() {
                 </a>
               ))}
 
-              {/* LIGNE MODIFIÉE : Ajout de onClick={handleScrollToTop} */}
               <Link 
                 to="/admin" 
                 onClick={handleScrollToTop}
@@ -142,7 +131,6 @@ export default function Footer() {
           </motion.div>
         </div>
 
-        {/* Divider et Copyright/Scroll to Top */}
         <div className="border-t border-accent/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 mt-4">
           <p className="text-xs text-beige/50 order-2 md:order-1">
             &copy; {new Date().getFullYear()} Amine Hiking Journal. Tous droits réservés. Développé avec 💙.
