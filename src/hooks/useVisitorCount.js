@@ -11,7 +11,7 @@ export function useVisitorCount() {
 
     async function incrementAndFetch() {
       try {
-        // Try RPC first for atomic increment
+        // Try RPC first for atomic increment on Supabase
         const { data, error } = await supabase.rpc('increment_visits');
 
         if (!error && typeof data === 'number') {
@@ -34,17 +34,26 @@ export function useVisitorCount() {
             setVisitorCount(tableData.count);
             setLoading(false);
           }
-        } else {
-          // Default fallback
-          if (isMounted) {
-            setVisitorCount(105);
-            setLoading(false);
-          }
+          return;
+        }
+
+        // Smart LocalStorage Fallback (if Supabase key is not yet configured or SQL not run)
+        const storedCount = parseInt(localStorage.getItem('amine_visitor_count') || '105', 10);
+        const newCount = storedCount + 1;
+        localStorage.setItem('amine_visitor_count', newCount.toString());
+
+        if (isMounted) {
+          setVisitorCount(newCount);
+          setLoading(false);
         }
       } catch (err) {
         console.warn('Visitor counter notice:', err?.message || err);
+        const storedCount = parseInt(localStorage.getItem('amine_visitor_count') || '105', 10);
+        const newCount = storedCount + 1;
+        localStorage.setItem('amine_visitor_count', newCount.toString());
+
         if (isMounted) {
-          setVisitorCount(105);
+          setVisitorCount(newCount);
           setLoading(false);
         }
       }
