@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Instagram, Music, MessageCircle, ArrowUp, Mail, BookOpen, Heart, Activity } from "lucide-react";
 
+import { VisitorBadge } from './VisitorCounter';
+
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
   visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } }
@@ -43,11 +45,16 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-10">
           
           <motion.div 
-            className="col-span-2 md:col-span-1"
+            className="col-span-2 md:col-span-1 flex flex-col items-start gap-3"
             variants={itemVariants}
           >
-            <p className="text-2xl font-extrabold text-accent mb-2">Amine Hiking</p>
-            <p className="text-sm text-beige/70 mb-4">L'aventure au quotidien, avec style.</p>
+            <div>
+              <p className="text-2xl font-extrabold text-accent mb-1">Amine Hiking</p>
+              <p className="text-sm text-beige/70">L'aventure au quotidien, avec style.</p>
+            </div>
+
+            <VisitorBadge />
+
             <a 
               href="https://wa.me/" 
               target="_blank" 

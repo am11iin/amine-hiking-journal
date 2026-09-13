@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Compass, Camera, Mountain, MapPin, TrendingUp, Sparkles, ChevronDown } from "lucide-react";
 
+import { VisitorBadge, VisitorCard } from '../components/VisitorCounter';
+
 const container = {
   hidden: { opacity: 0 },
   show: {
@@ -58,13 +60,16 @@ const Home = () => {
 
       {/* Hero Section */}
       <motion.div 
-        className="text-center max-w-4xl relative z-10 px-4"
+        className="text-center max-w-5xl relative z-10 px-4"
         variants={container}
       >
-        {/* Badge / Tagline */}
-        <motion.div variants={item} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/30 text-accent font-semibold text-sm mb-6 backdrop-blur-md">
-          <Sparkles className="w-4 h-4 text-accent" />
-          <span>Journal d'Aventures & Randonnées</span>
+        {/* Badges / Tagline */}
+        <motion.div variants={item} className="flex flex-wrap items-center justify-center gap-3 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/30 text-accent font-semibold text-sm backdrop-blur-md">
+            <Sparkles className="w-4 h-4 text-accent" />
+            <span>Journal d'Aventures & Randonnées</span>
+          </div>
+          <VisitorBadge />
         </motion.div>
 
         <motion.h1 
@@ -119,7 +124,7 @@ const Home = () => {
 
         {/* Modern Statistics Cards */}
         <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-16 max-w-5xl mx-auto w-full"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16 max-w-5xl mx-auto w-full"
           variants={item}
         >
           {[
@@ -163,6 +168,7 @@ const Home = () => {
               </div>
             </motion.div>
           ))}
+          <VisitorCard />
         </motion.div>
       </motion.div>
 

@@ -153,3 +153,45 @@ Couteau multifonctions'
     'Exigeant mais très gratifiant.',
     'Apporter bâtons de randonnée et vêtements chauds.'
 );
+
+
+-- ==========================================
+-- 5. COMPTEUR DE VISITES DU SITE (VISITS)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.visits (
+    id INT PRIMARY KEY DEFAULT 1,
+    count BIGINT NOT NULL DEFAULT 100
+);
+
+INSERT INTO public.visits (id, count)
+VALUES (1, 100)
+ON CONFLICT (id) DO NOTHING;
+
+ALTER TABLE public.visits ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Lecture publique des visites"
+ON public.visits FOR SELECT USING (true);
+
+CREATE POLICY "Mise à jour publique des visites"
+ON public.visits FOR UPDATE USING (true) WITH CHECK (true);
+
+-- Fonction SQL pour incrémenter atomiquement le compteur
+CREATE OR REPLACE FUNCTION public.increment_visits()
+RETURNS BIGINT
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    new_count BIGINT;
+BEGIN
+    INSERT INTO public.visits (id, count)
+    VALUES (1, 1)
+    ON CONFLICT (id) DO UPDATE
+    SET count = public.visits.count + 1
+    RETURNING count INTO new_count;
+    
+    RETURN new_count;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.increment_visits() TO public, anon, authenticated;
