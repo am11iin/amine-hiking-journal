@@ -134,7 +134,7 @@ export default function Footer() {
                 to="/admin" 
                 onClick={handleScrollToTop}
                 className="text-xs text-beige/50 ml-4 px-3 py-1 border border-beige/30 rounded-full hover:bg-accent hover:text-primary transition-all font-semibold" 
-                title="Zone d'administration sécurisée"
+                title="Zone d'administration"
               >
                 Admin
               </Link>

@@ -1,35 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, MapPin, Clock, Mountain, Ruler, AlertTriangle, ChevronLeft, ChevronRight, Hash } from 'lucide-react'; // Ajout d'icônes
-import { hikes } from '../data/hikes';
-import Gallery from '../components/Gallery'; // Assurez-vous que ce composant existe
+import { ArrowLeft, MapPin, Clock, Mountain, Ruler, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
-// Classes de style communes pour l'UI
 const CARD_CLASS = "bg-primary/50 border border-accent/20 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-xl";
 const INFO_ITEM_CLASS = "flex items-center gap-3 text-lg font-semibold";
 
 const HikeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [hike, setHike] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Récupérer d'abord les randonnées depuis le localStorage si présentes
-  const stored = typeof window !== 'undefined' ? localStorage.getItem('hikesData') : null;
-  // Utilise les données stockées si elles existent, sinon les données par défaut
-  const allHikes = stored ? JSON.parse(stored) : hikes;
-
-  const hike = allHikes.find(h => String(h.id) === String(id));
-  
-  // Utiliser la première image comme fallback pour la galerie si 'images' est manquant
-  const images = hike?.images && hike.images.length > 0 ? hike.images : [hike?.cover || '/placeholder-hike.jpg'];
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
+    async function getHikeDetail() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('hikes')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (fetchError) {
+          console.error("Erreur récupération randonnée:", fetchError);
+          setHike(null);
+        } else {
+          setHike(data);
+        }
+      } catch (err) {
+        console.error("Erreur serveur:", err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (id) {
+      getHikeDetail();
+    }
   }, [id]);
+
+  const images = hike?.images && Array.isArray(hike.images) && hike.images.length > 0 
+    ? hike.images 
+    : [hike?.cover || '/hike1.webp'];
 
   const nextImage = () => {
     setCurrentImageIndex((prevIndex) => 
@@ -43,19 +62,30 @@ const HikeDetails = () => {
     );
   };
 
-  // Logique pour la couleur de difficulté
   const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'Facile':
+    switch (difficulty?.toLowerCase()) {
+      case 'facile':
         return 'bg-green-600/20 text-green-400 border-green-600';
-      case 'Moyen':
+      case 'moyen':
         return 'bg-yellow-600/20 text-yellow-400 border-yellow-600';
-      case 'Difficile':
+      case 'difficile':
         return 'bg-red-600/20 text-red-400 border-red-600';
       default:
         return 'bg-beige/20 text-beige border-beige/40';
     }
   };
+
+  // --- Affichage Chargement ---
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-primary flex items-center justify-center">
+        <div className="animate-pulse text-center">
+          <div className="w-16 h-16 border-4 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-beige/70 text-lg font-semibold">Chargement de l'aventure...</p>
+        </div>
+      </div>
+    );
+  }
 
   // --- Affichage Randonnée Introuvable ---
   if (!hike) {
@@ -69,9 +99,9 @@ const HikeDetails = () => {
         <div className="max-w-md bg-primary/80 p-10 rounded-xl border border-accent/20 shadow-2xl">
           <div className="text-6xl mb-4">😕</div>
           <h1 className="text-3xl font-bold text-beige mb-4">Randonnée introuvable</h1>
-          <p className="text-beige/70 mb-8">La randonnée que vous recherchez n'existe pas ou a été déplacée.</p>
+          <p className="text-beige/70 mb-8">La randonnée que vous recherchez n'existe pas ou a été supprimée.</p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/hikes')}
             className="px-6 py-3 bg-accent/10 hover:bg-accent/20 border border-accent/30 text-accent rounded-lg transition-all duration-300 flex items-center gap-2 mx-auto font-semibold"
           >
             <ArrowLeft size={18} />
@@ -79,18 +109,6 @@ const HikeDetails = () => {
           </button>
         </div>
       </motion.main>
-    );
-  }
-  
-  // --- Affichage Chargement ---
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-primary flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <div className="w-16 h-16 border-4 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-beige/70 text-lg font-semibold">Chargement de l'aventure...</p>
-        </div>
-      </div>
     );
   }
 
@@ -105,7 +123,6 @@ const HikeDetails = () => {
     >
       {/* Background elements */}
       <div className="absolute inset-0 overflow-hidden opacity-30">
-        {/* ... (Animations de fond conservées) ... */}
         <motion.div 
           className="absolute -top-40 -right-40 w-96 h-96 bg-accent/5 rounded-full blur-3xl"
           animate={{ x: [0, 20, 0], y: [0, -20, 0] }}
@@ -121,7 +138,7 @@ const HikeDetails = () => {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Back button */}
         <motion.button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/hikes')}
           className="mb-8 flex items-center text-beige/70 hover:text-accent transition-colors group font-semibold"
           whileHover={{ x: -4 }}
         >
@@ -174,16 +191,16 @@ const HikeDetails = () => {
                 className="absolute inset-0 w-full h-full object-cover"
                 initial={{ opacity: 0, x: 0 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 0 }} // Désactiver le décalage x pour ne pas bouger l'image à l'exit
+                exit={{ opacity: 0, x: 0 }}
                 transition={{ duration: 0.4 }}
                 onError={(e) => {
-                  e.target.src = '/placeholder-hike.jpg';
-                  e.target.className = 'absolute inset-0 w-full h-full object-contain bg-primary/20 p-12'; // Ajustement de la classe en cas d'erreur
+                  e.target.src = '/hike1.webp';
+                  e.target.className = 'absolute inset-0 w-full h-full object-contain bg-primary/20 p-12';
                 }}
               />
             </AnimatePresence>
             
-            {/* Navigation Arrows (Plus élégantes) */}
+            {/* Navigation Arrows */}
             {images.length > 1 && (
               <>
                 <button
@@ -241,7 +258,6 @@ const HikeDetails = () => {
                         { icon: Ruler, label: "Distance totale", value: hike.distance },
                         { icon: Clock, label: "Durée estimée", value: hike.duration },
                         { icon: Mountain, label: "Point culminant", value: hike.altitude },
-                        { icon: Hash, label: "ID Randonnée", value: hike.id },
                     ].map((item, i) => (
                         <div key={i} className="flex justify-between items-center border-b border-accent/10 pb-2 last:border-b-0 last:pb-0">
                             <div className="flex items-center gap-3 text-beige/70">
@@ -256,45 +272,36 @@ const HikeDetails = () => {
         </div>
 
         {/* Avis Personnel */}
-        <motion.div
-          className="mb-16"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          <h3 className="text-4xl font-bold mb-6 flex items-center gap-3">⭐ Avis Personnel</h3>
-          <p className={`${CARD_CLASS} text-lg text-beige/90 leading-relaxed border-l-4 border-accent/80`}>
-            {hike.review}
-          </p>
-        </motion.div>
+        {hike.review && (
+          <motion.div
+            className="mb-16"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            <h3 className="text-4xl font-bold mb-6 flex items-center gap-3">⭐ Avis Personnel</h3>
+            <p className={`${CARD_CLASS} text-lg text-beige/90 leading-relaxed border-l-4 border-accent/80`}>
+              {hike.review}
+            </p>
+          </motion.div>
+        )}
 
         {/* Conseils */}
-        <motion.div
-          className="mb-16"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <h3 className="text-4xl font-bold mb-6 flex items-center gap-3">💡 Conseils Utiles</h3>
-          <p className={`${CARD_CLASS} text-lg text-beige/90 leading-relaxed border-l-4 border-accent/80`}>
-            {hike.advice}
-          </p>
-        </motion.div>
+        {hike.advice && (
+          <motion.div
+            className="mb-16"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <h3 className="text-4xl font-bold mb-6 flex items-center gap-3">💡 Conseils Utiles</h3>
+            <p className={`${CARD_CLASS} text-lg text-beige/90 leading-relaxed border-l-4 border-accent/80 whitespace-pre-line`}>
+              {hike.advice}
+            </p>
+          </motion.div>
+        )}
 
-        {/* Galerie (Si vous utilisez un composant Gallery séparé) */}
-        {/*
-        <motion.div
-          className="mb-16"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-        >
-          <h3 className="text-4xl font-bold mb-8 flex items-center gap-3">📸 Galerie Photos</h3>
-          <Gallery images={images} />
-        </motion.div>
-        */}
-
-        {/* Carte Google (Correction de l'URL) */}
+        {/* Carte Google */}
         <motion.div
           className="mb-16"
           initial={{ y: 20, opacity: 0 }}
@@ -304,8 +311,6 @@ const HikeDetails = () => {
           <h3 className="text-4xl font-bold mb-8 flex items-center gap-3">🗺️ Localisation</h3>
           <div className="rounded-3xl overflow-hidden shadow-glow-lg">
             <iframe
-              // Nouvelle structure d'URL pour un embed Google Maps basé sur une requête
-              // Assurez-vous que le composant est monté côté client avant d'exécuter cette ligne
               src={`https://maps.google.com/maps?q=${encodeURIComponent(hike.location)}&output=embed`}
               className="w-full h-96 rounded-3xl border-2 border-accent/20"
               allowFullScreen=""

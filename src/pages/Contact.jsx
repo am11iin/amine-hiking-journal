@@ -19,19 +19,29 @@ export default function Contact() {
     e.preventDefault();
     setError(false);
     
-    // Configuration EmailJS - remplacez avec vos vraies clés
-    emailjs.init("YOUR_PUBLIC_KEY"); // À remplacer
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+
+    if (!publicKey || !serviceId || !templateId) {
+      console.warn("EmailJS non configuré dans les variables d'environnement.");
+      setError(true);
+      setTimeout(() => setError(false), 4000);
+      return;
+    }
     
-    emailjs.sendForm('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', form.current)
+    emailjs.init(publicKey);
+    
+    emailjs.sendForm(serviceId, templateId, form.current)
       .then(() => {
         setSuccess(true);
         form.current.reset();
-        setTimeout(() => setSuccess(false), 4000); // 4 secondes
+        setTimeout(() => setSuccess(false), 4000);
       })
-      .catch(() => {
+      .catch((err) => {
         setError(true);
-        setTimeout(() => setError(false), 4000); // 4 secondes
-        console.error("Erreur d'envoi. Vérifiez vos clés EmailJS.");
+        setTimeout(() => setError(false), 4000);
+        console.error("Erreur d'envoi EmailJS:", err);
       });
   };
 

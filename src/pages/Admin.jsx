@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { UploadCloud, X, LogOut, Edit, Trash2, KeyRound } from 'lucide-react'; // Ajout d'icônes spécifiques
-import { hikes as defaultHikes } from "../data/hikes";
+import { UploadCloud, X, LogOut, Edit, Trash2, KeyRound, Loader2, Mail, Lock } from 'lucide-react';
+import { supabase } from "../lib/supabaseClient";
 
 const initialFormData = {
   title: "",
@@ -18,42 +18,95 @@ const initialFormData = {
   advice: ""
 };
 
-// Nouvelle classe pour styliser uniformément les champs de formulaire
 const ADMIN_INPUT_CLASS = "w-full p-3 rounded-xl bg-primary/70 text-beige border border-accent/20 focus:outline-none focus:ring-2 focus:ring-accent/80 transition-all placeholder-beige/50";
 
 export default function Admin() {
   const navigate = useNavigate();
   const [hikes, setHikes] = useState([]);
   const [formData, setFormData] = useState(initialFormData);
-  const [isPasswordCorrect, setIsPasswordCorrect] = useState(false); 
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  
+  // Auth state
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Form state
   const [editingId, setEditingId] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionError, setActionError] = useState("");
   const fileInputRef = useRef(null);
 
-  const ADMIN_PASSWORD = "admin2025"; // À changer !
-
+  // 1. Gérer la session d'authentification Supabase
   useEffect(() => {
-    const savedHikes = localStorage.getItem("hikesData");
-    if (savedHikes) {
-      setHikes(JSON.parse(savedHikes));
-    } else {
-      setHikes(defaultHikes);
-      localStorage.setItem("hikesData", JSON.stringify(defaultHikes));
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handlePasswordSubmit = (e) => {
+  // 2. Charger les randonnées depuis Supabase
+  const loadHikes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('hikes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setHikes(data || []);
+    } catch (err) {
+      console.error("Erreur chargement des hikes:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    if (session) {
+      loadHikes();
+    }
+  }, [session]);
+
+  // Connexion Admin via Supabase Auth
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Utilisation d'un temporisateur pour simuler un délai de connexion
-    setTimeout(() => { 
-        if (password === ADMIN_PASSWORD) {
-          setIsPasswordCorrect(true);
-          setPassword("");
-        } else {
-          alert("❌ Mot de passe incorrect !");
-          setPassword("");
-        }
-    }, 500);
+    setLoginError("");
+    setIsLoggingIn(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+      setSession(data.session);
+      setEmail("");
+      setPassword("");
+    } catch (err) {
+      setLoginError(err.message || "Identifiants incorrects.");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  // Déconnexion
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    navigate("/");
   };
 
   const handleInputChange = (e) => {
@@ -64,94 +117,196 @@ export default function Admin() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, cover: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
   const resetForm = () => {
     setFormData(initialFormData);
     setEditingId(null);
-    if(fileInputRef.current) {
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setActionError("");
+    if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  }
+  };
 
-  const handleAddHike = (e) => {
+  // Upload d'image vers le bucket Supabase Storage "hike-images"
+  const uploadImageToStorage = async (file) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('hike-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('hike-images')
+      .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+  };
+
+  // Ajouter ou Modifier une randonnée dans Supabase
+  const handleAddHike = async (e) => {
     e.preventDefault();
-    if (!formData.cover) {
-      alert("Veuillez ajouter une image de couverture.");
-      return;
-    }
+    setActionError("");
+    setIsSubmitting(true);
 
-    if (editingId) {
-      const updatedHikes = hikes.map(h =>
-        h.id === editingId ? { ...formData, id: editingId } : h
-      );
-      setHikes(updatedHikes);
-      localStorage.setItem("hikesData", JSON.stringify(updatedHikes));
-      alert("✅ Randonnée modifiée avec succès !");
-    } else {
-      const newHike = {
-        ...formData,
-        id: Date.now(),
-        images: [formData.cover]
+    try {
+      let finalCoverUrl = formData.cover;
+
+      // Si un nouveau fichier a été sélectionné, l'uploader sur Supabase Storage
+      if (selectedFile) {
+        finalCoverUrl = await uploadImageToStorage(selectedFile);
+      }
+
+      if (!finalCoverUrl) {
+        alert("Veuillez sélectionner une image de couverture.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const hikePayload = {
+        title: formData.title,
+        location: formData.location,
+        difficulty: formData.difficulty,
+        date: formData.date,
+        distance: formData.distance,
+        duration: formData.duration,
+        altitude: formData.altitude,
+        cover: finalCoverUrl,
+        images: formData.images && formData.images.length > 0 ? formData.images : [finalCoverUrl],
+        description: formData.description,
+        review: formData.review,
+        advice: formData.advice
       };
-      const updatedHikes = [...hikes, newHike];
-      setHikes(updatedHikes);
-      localStorage.setItem("hikesData", JSON.stringify(updatedHikes));
-      alert("✅ Randonnée ajoutée avec succès !");
+
+      if (editingId) {
+        // Mode modification
+        const { error } = await supabase
+          .from('hikes')
+          .update(hikePayload)
+          .eq('id', editingId);
+
+        if (error) throw error;
+        alert("✅ Randonnée modifiée avec succès !");
+      } else {
+        // Mode ajout
+        const { error } = await supabase
+          .from('hikes')
+          .insert([hikePayload]);
+
+        if (error) throw error;
+        alert("✅ Randonnée ajoutée avec succès !");
+      }
+
+      resetForm();
+      await loadHikes();
+    } catch (err) {
+      console.error("Erreur enregistrement hike:", err);
+      setActionError(err.message || "Erreur lors de l'enregistrement.");
+    } finally {
+      setIsSubmitting(false);
     }
-    resetForm();
   };
 
   const handleEditHike = (hike) => {
     setFormData(hike);
     setEditingId(hike.id);
+    setSelectedFile(null);
+    setPreviewUrl(hike.cover || "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDeleteHike = (id) => {
+  const handleDeleteHike = async (id) => {
     if (window.confirm("⚠️ Êtes-vous sûr de vouloir supprimer cette randonnée ?")) {
-      const updatedHikes = hikes.filter(h => h.id !== id);
-      setHikes(updatedHikes);
-      localStorage.setItem("hikesData", JSON.stringify(updatedHikes));
-      alert("✅ Randonnée supprimée !");
+      try {
+        const { error } = await supabase
+          .from('hikes')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        alert("✅ Randonnée supprimée !");
+        await loadHikes();
+      } catch (err) {
+        console.error("Erreur suppression:", err);
+        alert("Erreur lors de la suppression: " + err.message);
+      }
     }
   };
 
-  // --- ÉCRAN DE CONNEXION (Style amélioré) ---
-  if (!isPasswordCorrect) {
+  // 3. ÉCRAN DE CHARGEMENT DE L'AUTH
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-primary flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-accent animate-spin" />
+      </div>
+    );
+  }
+
+  // 4. ÉCRAN DE CONNEXION (Authentification Supabase)
+  if (!session) {
     return (
       <motion.main className="pt-24 px-6 bg-primary min-h-screen flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
         <motion.div className="max-w-md w-full bg-primary/70 p-10 rounded-3xl border border-accent/20 shadow-2xl backdrop-blur-sm" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }}>
           <h2 className="text-4xl font-extrabold text-accent mb-6 flex items-center justify-center gap-3">
             <KeyRound className="w-8 h-8" /> Espace Admin
           </h2>
-          <form onSubmit={handlePasswordSubmit} className="space-y-6">
+
+          {loginError && (
+            <div className="mb-4 p-3 bg-red-900/30 border border-red-500 text-red-400 rounded-xl text-sm text-center">
+              {loginError}
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-beige mb-2 font-semibold text-lg">Mot de passe</label>
+              <label className="block text-beige mb-2 font-semibold text-sm flex items-center gap-2">
+                <Mail className="w-4 h-4 text-accent" /> Email Admin
+              </label>
+              <input 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                placeholder="admin@exemple.com" 
+                className={ADMIN_INPUT_CLASS} 
+                required 
+              />
+            </div>
+            <div>
+              <label className="block text-beige mb-2 font-semibold text-sm flex items-center gap-2">
+                <Lock className="w-4 h-4 text-accent" /> Mot de passe
+              </label>
               <input 
                 type="password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
-                placeholder="************" 
-                // Utilisation du style moderne pour l'input
+                placeholder="••••••••" 
                 className={ADMIN_INPUT_CLASS} 
                 required 
               />
             </div>
             <motion.button 
               type="submit" 
-              // Bouton en accent pour le contraste
-              className="w-full px-6 py-3 bg-accent rounded-xl text-primary font-bold shadow-lg hover:bg-accent/90 transition-colors" 
-              whileHover={{ scale: 1.05 }} 
-              whileTap={{ scale: 0.95 }}
+              disabled={isLoggingIn}
+              className="w-full px-6 py-3 bg-accent rounded-xl text-primary font-bold shadow-lg hover:bg-accent/90 transition-colors flex items-center justify-center gap-2" 
+              whileHover={{ scale: 1.03 }} 
+              whileTap={{ scale: 0.97 }}
             >
-              Se connecter
+              {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Se connecter"}
             </motion.button>
           </form>
         </motion.div>
@@ -159,7 +314,7 @@ export default function Admin() {
     );
   }
 
-  // --- INTERFACE D'ADMINISTRATION (Style amélioré) ---
+  // 5. INTERFACE D'ADMINISTRATION
   return (
     <motion.main className="pt-24 px-6 md:px-12 bg-primary min-h-screen pb-20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
       <div className="max-w-6xl mx-auto">
@@ -168,10 +323,10 @@ export default function Admin() {
         <motion.div className="flex justify-between items-center mb-12 border-b border-accent/10 pb-4" initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }}>
           <div>
             <h1 className="text-4xl font-extrabold text-accent mb-1">🌄 Gestion des Randonnées</h1>
-            <p className="text-beige/70">Ajoutez, modifiez ou supprimez vos aventures. {hikes.length} circuits actifs.</p>
+            <p className="text-beige/70">Connecté en tant que <span className="text-accent font-semibold">{session.user.email}</span>. {hikes.length} circuits actifs.</p>
           </div>
           <motion.button 
-            onClick={() => { setIsPasswordCorrect(false); navigate("/"); }} 
+            onClick={handleLogout} 
             className="px-4 py-2 bg-red-600/90 text-white rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2 font-semibold" 
             whileHover={{ scale: 1.05 }}
           >
@@ -179,9 +334,17 @@ export default function Admin() {
           </motion.button>
         </motion.div>
 
+        {actionError && (
+          <div className="mb-6 p-4 bg-red-900/30 border border-red-500 text-red-400 rounded-xl text-center">
+            {actionError}
+          </div>
+        )}
+
         {/* Formulaire Ajouter/Modifier */}
         <motion.div className="bg-primary/50 p-8 rounded-3xl border border-accent/30 mb-16 shadow-2xl backdrop-blur-sm" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.2 }}>
-          <h2 className="text-3xl font-bold text-beige mb-8 border-b border-beige/10 pb-4">{editingId ? "✍️ Modifier la randonnée" : "✨ Ajouter une nouvelle randonnée"}</h2>
+          <h2 className="text-3xl font-bold text-beige mb-8 border-b border-beige/10 pb-4">
+            {editingId ? "✍️ Modifier la randonnée" : "✨ Ajouter une nouvelle randonnée"}
+          </h2>
           <form onSubmit={handleAddHike} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Champs de texte et sélecteurs */}
@@ -199,26 +362,26 @@ export default function Admin() {
               <input name="altitude" value={formData.altitude} onChange={handleInputChange} placeholder="Altitude (ex: 1800m)" className={ADMIN_INPUT_CLASS} />
             </div>
 
-            {/* Téléchargement d'image */}
+            {/* Téléchargement d'image sur Supabase Storage */}
             <div className="md:col-span-1 space-y-2">
               <label className="block text-beige font-semibold">Image de couverture</label>
               <div 
-                className="w-full aspect-video bg-primary/70 rounded-xl border-2 border-dashed border-accent/40 flex items-center justify-center text-center relative cursor-pointer hover:border-accent/80 transition-colors"
+                className="w-full aspect-video bg-primary/70 rounded-xl border-2 border-dashed border-accent/40 flex items-center justify-center text-center relative cursor-pointer hover:border-accent/80 transition-colors overflow-hidden"
                 onClick={() => fileInputRef.current.click()}
               >
                 <input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
-                {!formData.cover && (
+                {!previewUrl && !formData.cover && (
                   <div className="text-beige/60 p-4">
                     <UploadCloud className="w-8 h-8 mx-auto mb-2 text-accent/80" />
-                    <p className="font-semibold">Cliquer pour choisir une image</p>
+                    <p className="font-semibold text-sm">Cliquer pour choisir une image</p>
                     <p className="text-xs">PNG, JPG, WEBP</p>
                   </div>
                 )}
-                {formData.cover && (
+                {(previewUrl || formData.cover) && (
                   <>
-                    <img src={formData.cover} alt="Aperçu" className="w-full h-full object-cover rounded-xl" />
+                    <img src={previewUrl || formData.cover} alt="Aperçu" className="w-full h-full object-cover rounded-xl" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <p className="text-white font-bold text-lg flex items-center gap-2"><UploadCloud className="w-5 h-5" /> Changer</p>
+                      <p className="text-white font-bold text-sm flex items-center gap-2"><UploadCloud className="w-5 h-5" /> Changer</p>
                     </div>
                   </>
                 )}
@@ -236,12 +399,19 @@ export default function Admin() {
             <div className="md:col-span-3 flex items-center gap-4 pt-4">
               <motion.button 
                 type="submit" 
+                disabled={isSubmitting}
                 className="w-full px-6 py-4 bg-accent rounded-xl text-primary font-bold text-lg shadow-lg hover:bg-accent/90 transition-colors flex items-center justify-center gap-2" 
                 whileHover={{ scale: 1.02 }} 
                 whileTap={{ scale: 0.98 }}
               >
-                {editingId ? <Edit className="w-5 h-5" /> : <UploadCloud className="w-5 h-5" />} 
-                {editingId ? "ENREGISTRER LES MODIFICATIONS" : "AJOUTER LA RANDONNÉE"}
+                {isSubmitting ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  <>
+                    {editingId ? <Edit className="w-5 h-5" /> : <UploadCloud className="w-5 h-5" />} 
+                    {editingId ? "ENREGISTRER LES MODIFICATIONS" : "AJOUTER LA RANDONNÉE"}
+                  </>
+                )}
               </motion.button>
               {editingId && (
                 <button 
@@ -309,4 +479,4 @@ export default function Admin() {
       </div>
     </motion.main>
   );
-};
+}
