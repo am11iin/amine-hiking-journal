@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, CheckCircle, XCircle, Instagram, Music, MessageCircle, Linkedin, Mail } from 'lucide-react';
+import { Send, CheckCircle, XCircle, Instagram, Music, MessageCircle, Linkedin, Mail, Loader2 } from 'lucide-react';
 
 const CARD_CLASS = "bg-primary/50 border border-accent/20 backdrop-blur-md rounded-3xl";
 const INPUT_CLASS = "w-full p-4 rounded-xl bg-primary/70 text-beige border border-accent/20 focus:outline-none focus:ring-2 focus:ring-accent/80 transition-all placeholder-beige/50";
@@ -12,19 +12,24 @@ export default function Contact() {
   const form = useRef();
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   const sendEmail = (e) => {
     e.preventDefault();
     setError(false);
+    setErrorMsg("");
+    setIsSending(true);
     
-    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "";
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_rktp91g";
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_x2sifvk";
 
-    if (!publicKey || !serviceId || !templateId) {
-      console.warn("EmailJS non configuré dans les variables d'environnement.");
+    if (!publicKey) {
+      setIsSending(false);
       setError(true);
-      setTimeout(() => setError(false), 4000);
+      setErrorMsg("Veuillez fournir votre Public Key EmailJS dans VITE_EMAILJS_PUBLIC_KEY sur Netlify.");
+      setTimeout(() => setError(false), 5000);
       return;
     }
     
@@ -34,12 +39,16 @@ export default function Contact() {
       .then(() => {
         setSuccess(true);
         form.current.reset();
-        setTimeout(() => setSuccess(false), 4000);
+        setTimeout(() => setSuccess(false), 5000);
       })
       .catch((err) => {
         setError(true);
-        setTimeout(() => setError(false), 4000);
+        setErrorMsg(err.text || "Erreur d'envoi du message. Vérifiez votre Public Key.");
+        setTimeout(() => setError(false), 5000);
         console.error("Erreur d'envoi EmailJS:", err);
+      })
+      .finally(() => {
+        setIsSending(false);
       });
   };
 
@@ -86,7 +95,7 @@ export default function Contact() {
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.3 }}
             >
-              <CheckCircle className="w-5 h-5" /> Message envoyé avec succès !
+              <CheckCircle className="w-5 h-5" /> Message envoyé avec succès ! Je vous répondrai très vite.
             </motion.div>
           )}
           {error && (
@@ -97,7 +106,7 @@ export default function Contact() {
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.3 }}
             >
-              <XCircle className="w-5 h-5" /> Veuillez configurer vos identifiants EmailJS dans les variables Netlify.
+              <XCircle className="w-5 h-5" /> {errorMsg || "Erreur lors de l'envoi du message."}
             </motion.div>
           )}
         </AnimatePresence>
@@ -136,11 +145,21 @@ export default function Contact() {
 
           <motion.button 
             type="submit"
+            disabled={isSending}
             className="w-full py-4 bg-accent text-primary rounded-xl text-lg font-bold shadow-lg hover:bg-accent/90 transition-colors flex items-center justify-center gap-2"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Send className="w-5 h-5" /> Envoyer le message
+            {isSending ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Envoi en cours...</span>
+              </div>
+            ) : (
+              <>
+                <Send className="w-5 h-5" /> Envoyer le message
+              </>
+            )}
           </motion.button>
         </form>
 
