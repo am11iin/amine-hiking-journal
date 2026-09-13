@@ -13,9 +13,11 @@
     <meta name="author" content="Amine Sellami" />
     <meta name="theme-color" content="#0d1117" />
 
-    <!-- Favicon & Apple Touch Icon -->
+    <!-- Favicon & Icons Pro (Montagne) -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/hike1.webp" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/amine1.webp" />
 
     <!-- Balises Open Graph (WhatsApp, Facebook, LinkedIn, Discord) -->
     <meta property="og:type" content="website" />
@@ -24,6 +26,8 @@
     <meta property="og:title" content="Amine Hiking Journal - Journal d'Aventures & Randonnées" />
     <meta property="og:description" content="Découvrez mes expéditions en montagne, photos de paysages et guides d'itinéraires à travers les plus beaux sommets." />
     <meta property="og:image" content="https://amine-hiking-journal.netlify.app/amine1.webp" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Amine Hiking Journal - Exploration en montagne" />
 
     <!-- Balises Twitter Card -->
@@ -32,10 +36,25 @@
     <meta name="twitter:description" content="Découvrez mes expéditions en montagne, photos de paysages et guides d'itinéraires à travers les plus beaux sommets." />
     <meta name="twitter:image" content="https://amine-hiking-journal.netlify.app/amine1.webp" />
 
-    <!-- ⚡ Anti-cache -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+    <!-- Structured Data JSON-LD pour Google (SEO Pro Schema.org) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Amine Hiking Journal",
+      "url": "https://amine-hiking-journal.netlify.app/",
+      "author": {
+        "@type": "Person",
+        "name": "Amine Sellami",
+        "sameAs": [
+          "https://www.instagram.com/_amx_ne/",
+          "https://www.tiktok.com/@_aminnnnee",
+          "https://strava.app.link/TnVssSHoo6b"
+        ]
+      },
+      "description": "Journal d'aventures et de randonnées en montagne avec fiches techniques et photographies."
+    }
+    </script>
   </head>
   <body>
     <!-- Conteneur principal pour React -->
