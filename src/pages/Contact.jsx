@@ -21,18 +21,10 @@ export default function Contact() {
     setErrorMsg("");
     setIsSending(true);
     
-    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "";
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "LvAfRBv6ZVDKtFUlO";
     const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_rktp91g";
     const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_x2sifvk";
 
-    if (!publicKey) {
-      setIsSending(false);
-      setError(true);
-      setErrorMsg("Veuillez fournir votre Public Key EmailJS dans VITE_EMAILJS_PUBLIC_KEY sur Netlify.");
-      setTimeout(() => setError(false), 5000);
-      return;
-    }
-    
     emailjs.init(publicKey);
     
     emailjs.sendForm(serviceId, templateId, form.current)
@@ -43,7 +35,7 @@ export default function Contact() {
       })
       .catch((err) => {
         setError(true);
-        setErrorMsg(err.text || "Erreur d'envoi du message. Vérifiez votre Public Key.");
+        setErrorMsg(err.text || "Erreur lors de l'envoi du message.");
         setTimeout(() => setError(false), 5000);
         console.error("Erreur d'envoi EmailJS:", err);
       })
