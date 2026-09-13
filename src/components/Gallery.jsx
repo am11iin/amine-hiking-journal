@@ -1,6 +1,47 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { Camera, X, Maximize2, Image as ImageIcon } from "lucide-react";
+import { X, Maximize2, Image as ImageIcon, Loader2 } from "lucide-react";
+
+function GalleryThumbnail({ img, index, onSelect }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <motion.div 
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="group cursor-pointer relative"
+      onClick={() => onSelect(img)}
+    >
+      <div className="relative overflow-hidden rounded-2xl shadow-xl border border-accent/20 bg-primary/90 aspect-square">
+        {!isLoaded && (
+          <div className="absolute inset-0 bg-primary/90 animate-pulse flex items-center justify-center">
+            <Loader2 className="w-6 h-6 text-accent/60 animate-spin" />
+          </div>
+        )}
+        <img 
+          src={img} 
+          alt={`Galerie photo ${index + 1}`} 
+          className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+            isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          onLoad={() => setIsLoaded(true)}
+          onError={(e) => {
+            e.target.src = '/hike1.webp';
+            setIsLoaded(true);
+          }}
+          loading="lazy"
+        />
+        
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <span className="text-white font-semibold text-sm border border-white/40 rounded-full px-4 py-1.5 backdrop-blur-md flex items-center gap-2">
+            <Maximize2 className="w-4 h-4 text-accent" /> Agrandir
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function Gallery({ images }) {
   const [selected, setSelected] = useState(null);
@@ -62,32 +103,12 @@ export default function Gallery({ images }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
         {validImages.map((img, i) => (
-          <motion.div 
+          <GalleryThumbnail 
             key={i} 
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="group cursor-pointer relative"
-            onClick={() => setSelected(img)}
-          >
-            <div className="relative overflow-hidden rounded-2xl shadow-xl border border-accent/20 bg-primary/70 aspect-square">
-              <img 
-                src={img} 
-                alt={`Galerie photo ${i + 1}`} 
-                className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
-                onError={(e) => {
-                  e.target.src = '/hike1.webp';
-                }}
-                loading="lazy"
-              />
-              
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <span className="text-white font-semibold text-sm border border-white/40 rounded-full px-4 py-1.5 backdrop-blur-md flex items-center gap-2">
-                  <Maximize2 className="w-4 h-4 text-accent" /> Agrandir
-                </span>
-              </div>
-            </div>
-          </motion.div>
+            img={img} 
+            index={i} 
+            onSelect={setSelected} 
+          />
         ))}
       </div>
     </div>

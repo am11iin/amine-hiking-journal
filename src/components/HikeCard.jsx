@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, Calendar, ArrowRight, TrendingUp } from 'lucide-react'; 
+import { MapPin, Clock, Calendar, ArrowRight, TrendingUp, Loader2 } from 'lucide-react'; 
 
 const getDifficultyColor = (difficulty) => {
   switch(difficulty?.toLowerCase()) {
@@ -16,10 +17,13 @@ const getDifficultyColor = (difficulty) => {
 };
 
 export default function HikeCard({ hike, index = 0 }) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   if (!hike) return null;
 
   const handleImageError = (e) => {
     e.target.src = '/hike1.webp';
+    setImageLoaded(true);
   };
 
   return (
@@ -30,17 +34,25 @@ export default function HikeCard({ hike, index = 0 }) {
       transition={{ duration: 0.4, delay: index * 0.08 }}
       whileHover={{ y: -4, boxShadow: '0 20px 30px -10px rgba(0, 0, 0, 0.6)' }}
     >
-      {/* 1. Image Container (Taille responsive optimale 375px) */}
-      <div className="relative h-48 sm:h-56 md:h-60 overflow-hidden bg-primary/80">
+      {/* 1. Image Container avec Skeleton Animated */}
+      <div className="relative h-48 sm:h-56 md:h-60 overflow-hidden bg-primary/90">
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-primary/90 animate-pulse flex items-center justify-center border-b border-accent/10">
+            <Loader2 className="w-7 h-7 text-accent/60 animate-spin" />
+          </div>
+        )}
         <motion.img
           src={hike.cover || '/hike1.webp'}
           alt={`${hike.title || 'Randonnée'} - Couverture`}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
+          className={`w-full h-full object-cover transition-opacity duration-500 group-hover:scale-[1.06] ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
           loading="lazy"
+          onLoad={() => setImageLoaded(true)}
           onError={handleImageError}
         />
         
-        <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-transparent opacity-90" /> 
+        <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-transparent opacity-90 pointer-events-none" /> 
         
         {/* Difficulty Badge */}
         <div 
