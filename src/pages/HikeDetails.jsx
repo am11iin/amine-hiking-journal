@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, MapPin, Clock, Mountain, Ruler, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Mountain, Ruler, ChevronLeft, ChevronRight, FileText, BarChart3, Star, Lightbulb, Camera, Compass } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 const CARD_CLASS = "bg-primary/50 border border-accent/20 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-xl";
@@ -65,11 +65,11 @@ const HikeDetails = () => {
   const getDifficultyColor = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
       case 'facile':
-        return 'bg-green-600/20 text-green-400 border-green-600';
+        return 'bg-green-600/20 text-green-400 border-green-600/40';
       case 'moyen':
-        return 'bg-yellow-600/20 text-yellow-400 border-yellow-600';
+        return 'bg-amber-600/20 text-amber-400 border-amber-600/40';
       case 'difficile':
-        return 'bg-red-600/20 text-red-400 border-red-600';
+        return 'bg-red-600/20 text-red-400 border-red-600/40';
       default:
         return 'bg-beige/20 text-beige border-beige/40';
     }
@@ -96,13 +96,13 @@ const HikeDetails = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <div className="max-w-md bg-primary/80 p-10 rounded-xl border border-accent/20 shadow-2xl">
-          <div className="text-6xl mb-4">😕</div>
+        <div className="max-w-md bg-primary/80 p-10 rounded-3xl border border-accent/20 shadow-2xl backdrop-blur-md">
+          <Compass className="w-16 h-16 text-accent mx-auto mb-4 opacity-80" />
           <h1 className="text-3xl font-bold text-beige mb-4">Randonnée introuvable</h1>
           <p className="text-beige/70 mb-8">La randonnée que vous recherchez n'existe pas ou a été supprimée.</p>
           <button
             onClick={() => navigate('/hikes')}
-            className="px-6 py-3 bg-accent/10 hover:bg-accent/20 border border-accent/30 text-accent rounded-lg transition-all duration-300 flex items-center gap-2 mx-auto font-semibold"
+            className="px-6 py-3 bg-accent/10 hover:bg-accent/20 border border-accent/30 text-accent rounded-xl transition-all duration-300 flex items-center gap-2 mx-auto font-semibold"
           >
             <ArrowLeft size={18} />
             Retour aux randonnées
@@ -122,14 +122,14 @@ const HikeDetails = () => {
       transition={{ duration: 0.5 }}
     >
       {/* Background elements */}
-      <div className="absolute inset-0 overflow-hidden opacity-30">
+      <div className="absolute inset-0 overflow-hidden opacity-30 pointer-events-none">
         <motion.div 
-          className="absolute -top-40 -right-40 w-96 h-96 bg-accent/5 rounded-full blur-3xl"
+          className="absolute -top-40 -right-40 w-96 h-96 bg-accent/10 rounded-full blur-3xl"
           animate={{ x: [0, 20, 0], y: [0, -20, 0] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl"
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl"
           animate={{ x: [0, -20, 0], y: [0, 20, 0] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         />
@@ -153,7 +153,7 @@ const HikeDetails = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
         >
-            <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 leading-tight">{hike.title}</h1>
+            <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight tracking-tight">{hike.title}</h1>
             
             <div className="flex flex-wrap items-center gap-6 md:gap-8 text-beige/80">
                 <div className={INFO_ITEM_CLASS}>
@@ -167,7 +167,7 @@ const HikeDetails = () => {
                 <div className={INFO_ITEM_CLASS}>
                     <Mountain className="text-accent w-5 h-5" />
                     <span 
-                        className={`px-3 py-1 text-sm font-bold rounded-full border ${getDifficultyColor(hike.difficulty)}`}
+                        className={`px-4 py-1 text-sm font-bold rounded-full border ${getDifficultyColor(hike.difficulty)}`}
                     >
                         {hike.difficulty}
                     </span>
@@ -175,10 +175,10 @@ const HikeDetails = () => {
             </div>
         </motion.div>
 
-        {/* Gallery Section */}
+        {/* Gallery Section / Carrousel */}
         <motion.div 
           className="relative rounded-3xl overflow-hidden mb-16 shadow-2xl bg-primary/70 border border-accent/20"
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
@@ -189,9 +189,9 @@ const HikeDetails = () => {
                 src={images[currentImageIndex]}
                 alt={`${hike.title} - ${currentImageIndex + 1}`}
                 className="absolute inset-0 w-full h-full object-cover"
-                initial={{ opacity: 0, x: 0 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.4 }}
                 onError={(e) => {
                   e.target.src = '/hike1.webp';
@@ -205,25 +205,26 @@ const HikeDetails = () => {
               <>
                 <button
                   onClick={prevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-accent/80 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-accent text-white hover:text-primary w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md border border-white/10"
                   aria-label="Image précédente"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={24} />
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-accent/80 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-accent text-white hover:text-primary w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md border border-white/10"
                   aria-label="Image suivante"
                 >
-                  <ChevronRight size={20} />
+                  <ChevronRight size={24} />
                 </button>
               </>
             )}
             
             {/* Image Counter */}
             {images.length > 1 && (
-              <div className="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-4 py-1 rounded-full backdrop-blur-sm font-semibold">
-                {currentImageIndex + 1} / {images.length}
+              <div className="absolute bottom-4 right-4 bg-black/70 text-white text-sm px-4 py-1.5 rounded-full backdrop-blur-md font-semibold border border-white/10 flex items-center gap-2">
+                <Camera className="w-4 h-4 text-accent" />
+                <span>{currentImageIndex + 1} / {images.length}</span>
               </div>
             )}
           </div>
@@ -239,7 +240,9 @@ const HikeDetails = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
             >
-                <h2 className="text-4xl font-bold text-accent mb-6 flex items-center gap-3">📝 Description de la Randonnée</h2>
+                <h2 className="text-3xl font-extrabold text-accent mb-6 flex items-center gap-3">
+                  <FileText className="w-7 h-7 text-accent" /> Description de la Randonnée
+                </h2>
                 <div className={`${CARD_CLASS} text-lg text-beige/90 leading-relaxed`}>
                     <p className="whitespace-pre-line">{hike.description}</p>
                 </div>
@@ -252,19 +255,21 @@ const HikeDetails = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
             >
-                <h2 className="text-4xl font-bold text-accent mb-6 flex items-center gap-3">📊 Fiche Technique</h2>
+                <h2 className="text-3xl font-extrabold text-accent mb-6 flex items-center gap-3">
+                  <BarChart3 className="w-7 h-7 text-accent" /> Fiche Technique
+                </h2>
                 <div className={`${CARD_CLASS} space-y-4`}>
                     {[
                         { icon: Ruler, label: "Distance totale", value: hike.distance },
                         { icon: Clock, label: "Durée estimée", value: hike.duration },
                         { icon: Mountain, label: "Point culminant", value: hike.altitude },
                     ].map((item, i) => (
-                        <div key={i} className="flex justify-between items-center border-b border-accent/10 pb-2 last:border-b-0 last:pb-0">
+                        <div key={i} className="flex justify-between items-center border-b border-accent/10 pb-3 last:border-b-0 last:pb-0">
                             <div className="flex items-center gap-3 text-beige/70">
                                 <item.icon className="w-5 h-5 text-accent" />
                                 <span>{item.label}</span>
                             </div>
-                            <span className="font-bold text-beige">{item.value}</span>
+                            <span className="font-bold text-beige">{item.value || 'N/A'}</span>
                         </div>
                     ))}
                 </div>
@@ -279,8 +284,10 @@ const HikeDetails = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.5 }}
           >
-            <h3 className="text-4xl font-bold mb-6 flex items-center gap-3">⭐ Avis Personnel</h3>
-            <p className={`${CARD_CLASS} text-lg text-beige/90 leading-relaxed border-l-4 border-accent/80`}>
+            <h3 className="text-3xl font-extrabold mb-6 flex items-center gap-3 text-beige">
+              <Star className="w-7 h-7 text-amber-400 fill-amber-400/20" /> Avis Personnel
+            </h3>
+            <p className={`${CARD_CLASS} text-lg text-beige/90 leading-relaxed border-l-4 border-amber-400/80`}>
               {hike.review}
             </p>
           </motion.div>
@@ -294,7 +301,9 @@ const HikeDetails = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <h3 className="text-4xl font-bold mb-6 flex items-center gap-3">💡 Conseils Utiles</h3>
+            <h3 className="text-3xl font-extrabold mb-6 flex items-center gap-3 text-beige">
+              <Lightbulb className="w-7 h-7 text-amber-400" /> Conseils Utiles
+            </h3>
             <p className={`${CARD_CLASS} text-lg text-beige/90 leading-relaxed border-l-4 border-accent/80 whitespace-pre-line`}>
               {hike.advice}
             </p>
@@ -308,11 +317,13 @@ const HikeDetails = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
-          <h3 className="text-4xl font-bold mb-8 flex items-center gap-3">🗺️ Localisation</h3>
-          <div className="rounded-3xl overflow-hidden shadow-glow-lg">
+          <h3 className="text-3xl font-extrabold mb-8 flex items-center gap-3 text-beige">
+            <MapPin className="w-7 h-7 text-accent" /> Localisation & Itinéraire
+          </h3>
+          <div className="rounded-3xl overflow-hidden shadow-2xl border-2 border-accent/20">
             <iframe
               src={`https://maps.google.com/maps?q=${encodeURIComponent(hike.location)}&output=embed`}
-              className="w-full h-96 rounded-3xl border-2 border-accent/20"
+              className="w-full h-96 rounded-3xl border-none"
               allowFullScreen=""
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
