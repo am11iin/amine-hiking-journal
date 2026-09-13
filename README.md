@@ -1,155 +1,178 @@
-# 🌄 Amine Hiking Journal
+<div align="center">
 
-Un journal de randonnées & d'aventures moderne, ultra-rapide et responsive, développé avec **React**, **Vite**, **TailwindCSS**, **Framer Motion** et **Supabase**.
+# Amine Hiking Journal
 
-<p align="center">
-  <img src="public/amine.webp" width="220" style="border-radius:20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);" alt="Amine Hiking" />
-</p>
+**Un carnet de randonnée moderne pour immortaliser et partager vos aventures en montagne.**
 
-<p align="center">
-  <img src="https://img.shields.io/badge/React-18.x-blue?style=for-the-badge&logo=react" />
-  <img src="https://img.shields.io/badge/Vite-5.x-purple?style=for-the-badge&logo=vite" />
-  <img src="https://img.shields.io/badge/TailwindCSS-3.x-38bdf8?style=for-the-badge&logo=tailwindcss" />
-  <img src="https://img.shields.io/badge/Supabase-DB%20%26%20Auth-green?style=for-the-badge&logo=supabase" />
-  <img src="https://img.shields.io/badge/Netlify-Deployed-00C7B7?style=for-the-badge&logo=netlify" />
-</p>
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-Fast-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.x-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Framer Motion](https://img.shields.io/badge/Framer%20Motion-Animations-black?style=for-the-badge&logo=framer&logoColor=white)](https://www.framer.com/motion/)
+[![Netlify Status](https://img.shields.io/badge/Deployed-Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://amine-hiking-journal.netlify.app/)
 
----
+[Voir la démo en ligne](https://amine-hiking-journal.netlify.app/) · [Signaler un bug](https://github.com/am11iin/amine-hiking-journal/issues) · [Proposer une fonctionnalité](https://github.com/am11iin/amine-hiking-journal/issues)
 
-## ✨ Aperçu & Fonctionnalités
-
-- 🏔️ **Randonnées & Expéditions** : Visualisation détaillée des randonnées avec carte d'information (distance, altitude, durée, avis, conseils).
-- 🔍 **Recherche & Filtrage** : Filtrez les randonnées par titre ou localisation instantanément.
-- 🖼️ **Portfolio Galerie** : Agrégation dynamique de toutes les photos des randonnées stockées sur Supabase Storage (avec chargement progressif skeleton).
-- 👁️ **Compteur de Visiteurs Public** : Compteur atomique incrémenté via une fonction RPC PostgreSQL Supabase (`increment_visits`) avec animation fluide de chiffre défilant.
-- 📱 **Responsive Design (Mobile First)** : Optimisé pour tous les écrans (testé et validé à 375px mobile).
-- 🔒 **Espace d'Administration** : Espace sécurisé (`/admin`) permettant à l'administrateur d'ajouter et d'uploader de nouvelles randonnées avec images directement dans le bucket Supabase `hike-images`.
-- 📬 **Formulaire de Contact Pro** : Intégration EmailJS pour la réception directe de messages.
-- 🌐 **SEO & Open Graph** : Balises meta SEO, Open Graph et Twitter Cards pour un partage optimal sur les réseaux sociaux.
+</div>
 
 ---
 
-## 🛠️ Tech Stack
+## Aperçu
 
-| Élément | Technologie |
+<div align="center">
+  <img src="public/amine.png" alt="Aperçu du site Amine Hiking Journal" width="800"/>
+</div>
+
+> Remplacez cette image par une capture d'écran ou un GIF de démonstration à jour du site.
+
+---
+
+## Fonctionnalités
+
+- Cartes de randonnées — vue d'ensemble claire de chaque sortie
+- Pages détaillées — infos complètes par randonnée (lieu, distance, altitude, durée, date)
+- Galerie photo — plusieurs images par randonnée
+- Animations fluides — transitions soignées via Framer Motion
+- Design responsive — expérience optimisée sur mobile, tablette et desktop
+- Performances élevées — build ultra-rapide grâce à Vite
+- Données centralisées — gestion simple des randonnées via un fichier de données unique
+
+---
+
+## Stack technique
+
+| Technologie | Rôle |
 |---|---|
-| **Frontend** | React 18, Vite 5, React Router DOM v6 |
-| **Styles & Animations** | TailwindCSS, Framer Motion, Lucide React (Icônes SVG) |
-| **Backend & Base de données** | Supabase (PostgreSQL, Storage, Auth, RLS) |
-| **Formulaire & Mail** | EmailJS (`@emailjs/browser`) |
-| **Déploiement** | Netlify (SPA Redirects configurés) |
+| React | Composants et logique d'interface |
+| Vite | Bundler et serveur de développement |
+| TailwindCSS | Système de style utilitaire |
+| Framer Motion | Animations et transitions |
+| JavaScript (ES6+) | Logique applicative |
+| Netlify | Hébergement et déploiement continu |
 
 ---
 
-## 🔑 Configuration des variables d'environnement (`.env`)
+## Démarrage rapide
 
-Pour connecter l'application à votre instance **Supabase** et à **EmailJS**, créez un fichier `.env` à la racine du projet :
+### Prérequis
 
-```env
-# URL de votre projet Supabase
-VITE_SUPABASE_URL=https://votre-projet.supabase.co
+- [Node.js](https://nodejs.org/) v18 ou supérieur
+- npm ou yarn
 
-# Clé anonyme publique (Anon / Public Key)
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-# Options EmailJS (Formulaire de contact)
-VITE_EMAILJS_SERVICE_ID=service_rktp91g
-VITE_EMAILJS_TEMPLATE_ID=template_x2sifvk
-VITE_EMAILJS_PUBLIC_KEY=LvAfRBv6ZVDKtFUlO
-```
-
-> [!IMPORTANT]
-> Ne commitez jamais votre fichier `.env` sur GitHub. Un fichier exemple `.env.example` est fourni dans le dépôt.
-
----
-
-## 🗄️ Configuration de la Base de Données Supabase
-
-1. Créez un projet gratuit sur [Supabase](https://supabase.com/).
-2. Rendez-vous dans le **SQL Editor** de votre tableau de bord Supabase.
-3. Copiez et exécutez l'intégralité du script SQL disponible dans [`supabase/schema.sql`](./supabase/schema.sql).
-
-Ce script va automatiquement :
-- Créer la table `hikes` avec Row Level Security (RLS).
-- Créer le bucket public storage `hike-images` pour héberger les photos.
-- Créer la table `visits` et la fonction RPC `increment_visits()` pour le compteur de visiteurs atomique.
-- Insérer les randonnées initiales.
-
----
-
-## 🚀 Installation & Lancement Local
+### Installation
 
 ```bash
-# 1. Cloner le dépôt
+# Cloner le dépôt
 git clone https://github.com/am11iin/amine-hiking-journal.git
 cd amine-hiking-journal
 
-# 2. Installer les dépendances
+# Installer les dépendances
 npm install
 
-# 3. Configurer le fichier .env
-cp .env.example .env
-# Remplacez les valeurs dans .env par vos propres clés Supabase
-
-# 4. Lancer le serveur de développement
+# Lancer le serveur de développement
 npm run dev
 ```
 
-Ouvrez ensuite votre navigateur sur `http://localhost:5173`.
+L'application est alors disponible sur http://localhost:5173
 
----
-
-## 📦 Build & Déploiement Production (Netlify)
-
-Pour builder le projet :
+### Build de production
 
 ```bash
 npm run build
-```
-
-Pour tester le build localement :
-
-```bash
 npm run preview
 ```
 
-### Déploiement sur Netlify :
-1. Connectez votre dépôt GitHub à **Netlify**.
-2. Dans **Site Settings > Environment variables**, ajoutez :
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-3. Netlify va auto-déployer le projet. Les redirections SPA pour React Router sont gérées via `netlify.toml` et `public/_redirects`.
-
 ---
 
-## 📁 Structure du Projet
+## Structure du projet
 
-```text
+```
 amine-hiking-journal/
-├── public/                  # Favicon, images statiques WebP & _redirects
-├── src/
-│   ├── components/          # Header, Footer, HikeCard, Gallery, VisitorCounter, SkeletonLoader
-│   ├── hooks/               # useHikes, useVisitorCount
-│   ├── lib/                 # Client Supabase (supabaseClient.js)
-│   ├── pages/               # Home, Hikes, HikeDetails, Portfolio, Contact, Admin
-│   ├── App.jsx              # Configuration des routes
-│   └── main.jsx             # Point d'entrée React
-├── supabase/
-│   └── schema.sql           # Schema complet SQL (Tables, Bucket, RPC & Policies)
-├── .env.example             # Exemple de variables d'environnement
-├── netlify.toml             # Configuration Netlify SPA
-└── package.json
+├─ public/
+│  └─ images/              # Images et couvertures des randonnées
+├─ src/
+│  ├─ components/          # Composants UI réutilisables
+│  ├─ pages/                # Pages de l'application (Accueil, Détails…)
+│  ├─ data/
+│  │  └─ hikes.js          # Données des randonnées
+│  ├─ assets/               # Ressources statiques
+│  ├─ App.jsx
+│  └─ main.jsx
+├─ package.json
+├─ tailwind.config.js
+└─ vite.config.js
 ```
 
 ---
 
-## 🤝 Social & Contact
+## Personnalisation
 
-- **Instagram** : [@_amx_ne](https://www.instagram.com/_amx_ne/)
-- **TikTok** : [@_aminnnnee](https://www.tiktok.com/@_aminnnnee)
-- **Strava** : [Amine sur Strava](https://strava.app.link/TnVssSHoo6b)
-- **GitHub** : [@am11iin](https://github.com/am11iin)
+### Ajouter une randonnée
+
+Éditez `src/data/hikes.js` et ajoutez un nouvel objet :
+
+```js
+{
+  id: 1,
+  title: "Akouker - Djurdjura",
+  location: "Tizi-Ouzou",
+  distance: "12 km",
+  duration: "5h",
+  altitude: "2300m",
+  date: "2025-01-20",
+  cover: "/hikes/hike1.jpg",
+  images: [
+    "/hikes/hike1.jpg",
+    "/hikes/hike1-2.jpg"
+  ]
+}
+```
+
+### Modifier le thème
+
+Les couleurs, typographies et espacements se configurent dans `tailwind.config.js`.
+
+### Ajouter des images
+
+Placez vos photos dans `public/images/` puis référencez-les dans `hikes.js`.
 
 ---
 
-*Libre d'utilisation sous licence MIT. Fait avec passion pour la montagne.* 🏔️
+## Roadmap
+
+- [ ] Carte interactive des itinéraires (Leaflet)
+- [ ] Compteur de visiteurs
+- [ ] Optimisation SEO (meta tags, Open Graph)
+- [ ] Lazy loading des images
+- [ ] Mode sombre
+
+---
+
+## Contribuer
+
+Les contributions sont les bienvenues.
+
+1. Forkez le projet
+2. Créez votre branche (`git checkout -b feature/ma-fonctionnalite`)
+3. Commitez vos changements (`git commit -m 'Ajout de ma fonctionnalité'`)
+4. Poussez la branche (`git push origin feature/ma-fonctionnalite`)
+5. Ouvrez une Pull Request
+
+---
+
+## Licence
+
+Ce projet est libre d'utilisation et de modification.
+
+---
+
+## Contact
+
+**Amine** — [@am11iin](https://github.com/am11iin)
+
+Lien du projet : [github.com/am11iin/amine-hiking-journal](https://github.com/am11iin/amine-hiking-journal)
+
+<div align="center">
+
+Fait avec passion et beaucoup de kilomètres de marche
+
+</div>
