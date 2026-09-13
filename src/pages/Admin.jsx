@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { UploadCloud, X, LogOut, Edit, Trash2, KeyRound, Loader2, Mail, Lock } from 'lucide-react';
+import { UploadCloud, X, LogOut, Edit, Trash2, KeyRound, Loader2, Mail, Lock, Plus, Image as ImageIcon } from 'lucide-react';
 import { supabase } from "../lib/supabaseClient";
 
 const initialFormData = {
@@ -33,13 +33,18 @@ export default function Admin() {
   const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // Form state
+  // Form & Multi-Image state
   const [editingId, setEditingId] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState("");
+  const [coverFile, setCoverFile] = useState(null);
+  const [coverPreview, setCoverPreview] = useState("");
+  const [galleryFiles, setGalleryFiles] = useState([]); // Fichiers locaux choisis (File[])
+  const [existingGalleryUrls, setExistingGalleryUrls] = useState([]); // URLs d'images existantes (string[])
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState("");
-  const fileInputRef = useRef(null);
+  
+  const coverInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   // 1. Gérer la session d'authentification Supabase
   useEffect(() => {
@@ -77,7 +82,6 @@ export default function Admin() {
     }
   }, [session]);
 
-  // Connexion Admin via Supabase Auth
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError("");
@@ -89,9 +93,7 @@ export default function Admin() {
         password,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       setSession(data.session);
       setEmail("");
       setPassword("");
@@ -102,7 +104,6 @@ export default function Admin() {
     }
   };
 
-  // Déconnexion
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
@@ -114,23 +115,41 @@ export default function Admin() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e) => {
+  // Gestion du choix de la couverture
+  const handleCoverChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      setCoverFile(file);
+      setCoverPreview(URL.createObjectURL(file));
     }
+  };
+
+  // Gestion du choix de multiples images de galerie
+  const handleGalleryChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setGalleryFiles(prev => [...prev, ...files]);
+    }
+  };
+
+  const removeNewGalleryFile = (index) => {
+    setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingGalleryUrl = (urlToRemove) => {
+    setExistingGalleryUrls(prev => prev.filter(url => url !== urlToRemove));
   };
 
   const resetForm = () => {
     setFormData(initialFormData);
     setEditingId(null);
-    setSelectedFile(null);
-    setPreviewUrl("");
+    setCoverFile(null);
+    setCoverPreview("");
+    setGalleryFiles([]);
+    setExistingGalleryUrls([]);
     setActionError("");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (coverInputRef.current) coverInputRef.current.value = "";
+    if (galleryInputRef.current) galleryInputRef.current.value = "";
   };
 
   // Upload d'image vers le bucket Supabase Storage "hike-images"
@@ -146,9 +165,7 @@ export default function Admin() {
         upsert: false
       });
 
-    if (uploadError) {
-      throw uploadError;
-    }
+    if (uploadError) throw uploadError;
 
     const { data: publicUrlData } = supabase.storage
       .from('hike-images')
@@ -166,15 +183,30 @@ export default function Admin() {
     try {
       let finalCoverUrl = formData.cover;
 
-      // Si un nouveau fichier a été sélectionné, l'uploader sur Supabase Storage
-      if (selectedFile) {
-        finalCoverUrl = await uploadImageToStorage(selectedFile);
+      // 1. Upload de la couverture si un nouveau fichier est sélectionné
+      if (coverFile) {
+        finalCoverUrl = await uploadImageToStorage(coverFile);
       }
 
       if (!finalCoverUrl) {
         alert("Veuillez sélectionner une image de couverture.");
         setIsSubmitting(false);
         return;
+      }
+
+      // 2. Upload des nouvelles images de la galerie
+      const newUploadedGalleryUrls = [];
+      for (const file of galleryFiles) {
+        const url = await uploadImageToStorage(file);
+        newUploadedGalleryUrls.push(url);
+      }
+
+      // 3. Fusionner les images existantes + les nouvelles images uploadées
+      let finalImagesList = [...existingGalleryUrls, ...newUploadedGalleryUrls];
+
+      // S'assurer que l'image de couverture est présente au début de la galerie
+      if (finalImagesList.length === 0 || !finalImagesList.includes(finalCoverUrl)) {
+        finalImagesList = [finalCoverUrl, ...finalImagesList];
       }
 
       const hikePayload = {
@@ -186,14 +218,13 @@ export default function Admin() {
         duration: formData.duration,
         altitude: formData.altitude,
         cover: finalCoverUrl,
-        images: formData.images && formData.images.length > 0 ? formData.images : [finalCoverUrl],
+        images: finalImagesList,
         description: formData.description,
         review: formData.review,
         advice: formData.advice
       };
 
       if (editingId) {
-        // Mode modification
         const { error } = await supabase
           .from('hikes')
           .update(hikePayload)
@@ -202,7 +233,6 @@ export default function Admin() {
         if (error) throw error;
         alert("✅ Randonnée modifiée avec succès !");
       } else {
-        // Mode ajout
         const { error } = await supabase
           .from('hikes')
           .insert([hikePayload]);
@@ -224,8 +254,10 @@ export default function Admin() {
   const handleEditHike = (hike) => {
     setFormData(hike);
     setEditingId(hike.id);
-    setSelectedFile(null);
-    setPreviewUrl(hike.cover || "");
+    setCoverFile(null);
+    setCoverPreview(hike.cover || "");
+    setGalleryFiles([]);
+    setExistingGalleryUrls(hike.images && Array.isArray(hike.images) ? hike.images : (hike.cover ? [hike.cover] : []));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -248,7 +280,6 @@ export default function Admin() {
     }
   };
 
-  // 3. ÉCRAN DE CHARGEMENT DE L'AUTH
   if (authLoading) {
     return (
       <div className="min-h-screen bg-primary flex items-center justify-center">
@@ -257,7 +288,6 @@ export default function Admin() {
     );
   }
 
-  // 4. ÉCRAN DE CONNEXION (Authentification Supabase)
   if (!session) {
     return (
       <motion.main className="pt-24 px-6 bg-primary min-h-screen flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
@@ -314,7 +344,6 @@ export default function Admin() {
     );
   }
 
-  // 5. INTERFACE D'ADMINISTRATION
   return (
     <motion.main className="pt-24 px-6 md:px-12 bg-primary min-h-screen pb-20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
       <div className="max-w-6xl mx-auto">
@@ -362,29 +391,107 @@ export default function Admin() {
               <input name="altitude" value={formData.altitude} onChange={handleInputChange} placeholder="Altitude (ex: 1800m)" className={ADMIN_INPUT_CLASS} />
             </div>
 
-            {/* Téléchargement d'image sur Supabase Storage */}
+            {/* Téléchargement de la Couverture Principale */}
             <div className="md:col-span-1 space-y-2">
-              <label className="block text-beige font-semibold">Image de couverture</label>
+              <label className="block text-beige font-semibold flex items-center justify-between">
+                <span>Image de couverture</span>
+                <span className="text-xs text-accent font-normal">Principale</span>
+              </label>
               <div 
                 className="w-full aspect-video bg-primary/70 rounded-xl border-2 border-dashed border-accent/40 flex items-center justify-center text-center relative cursor-pointer hover:border-accent/80 transition-colors overflow-hidden"
-                onClick={() => fileInputRef.current.click()}
+                onClick={() => coverInputRef.current.click()}
               >
-                <input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
-                {!previewUrl && !formData.cover && (
+                <input type="file" accept="image/*" onChange={handleCoverChange} ref={coverInputRef} className="hidden" />
+                {!coverPreview && !formData.cover && (
                   <div className="text-beige/60 p-4">
                     <UploadCloud className="w-8 h-8 mx-auto mb-2 text-accent/80" />
-                    <p className="font-semibold text-sm">Cliquer pour choisir une image</p>
+                    <p className="font-semibold text-sm">Image principale</p>
                     <p className="text-xs">PNG, JPG, WEBP</p>
                   </div>
                 )}
-                {(previewUrl || formData.cover) && (
+                {(coverPreview || formData.cover) && (
                   <>
-                    <img src={previewUrl || formData.cover} alt="Aperçu" className="w-full h-full object-cover rounded-xl" />
+                    <img src={coverPreview || formData.cover} alt="Couverture" className="w-full h-full object-cover rounded-xl" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
                       <p className="text-white font-bold text-sm flex items-center gap-2"><UploadCloud className="w-5 h-5" /> Changer</p>
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+
+            {/* GALERIE PHOTOS MULTIPLES */}
+            <div className="md:col-span-3 space-y-3 mt-2 border-t border-accent/10 pt-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-bold text-beige flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5 text-accent" /> Galerie de Photos ({existingGalleryUrls.length + galleryFiles.length})
+                  </h3>
+                  <p className="text-sm text-beige/60">Ajoutez plusieurs images pour enrichir le carrousel de la randonnée.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current.click()}
+                  className="px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/40 rounded-xl transition-colors font-semibold flex items-center gap-2 text-sm"
+                >
+                  <Plus className="w-4 h-4" /> Ajouter des photos
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleGalleryChange}
+                  ref={galleryInputRef}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Grille des miniatures d'images */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 pt-2">
+                {/* Images existantes (mode édition) */}
+                {existingGalleryUrls.map((url, idx) => (
+                  <div key={`existing-${idx}`} className="relative aspect-square rounded-xl overflow-hidden group border border-accent/30 bg-primary/70">
+                    <img src={url} alt={`Galerie ${idx}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingGalleryUrl(url)}
+                      className="absolute top-1 right-1 p-1 bg-red-600/90 text-white rounded-full opacity-80 hover:opacity-100 transition-opacity"
+                      title="Supprimer cette photo"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-beige px-1.5 py-0.5 rounded font-mono">
+                      En ligne
+                    </span>
+                  </div>
+                ))}
+
+                {/* Nouvelles images locales sélectionnées */}
+                {galleryFiles.map((file, idx) => (
+                  <div key={`new-${idx}`} className="relative aspect-square rounded-xl overflow-hidden group border border-green-500/40 bg-primary/70">
+                    <img src={URL.createObjectURL(file)} alt={`Nouveau ${idx}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeNewGalleryFile(idx)}
+                      className="absolute top-1 right-1 p-1 bg-red-600/90 text-white rounded-full opacity-80 hover:opacity-100 transition-opacity"
+                      title="Annuler cette photo"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <span className="absolute bottom-1 left-1 text-[10px] bg-green-700/80 text-white px-1.5 py-0.5 rounded font-mono">
+                      Nouveau
+                    </span>
+                  </div>
+                ))}
+
+                {/* Bouton rapide d'ajout */}
+                <div
+                  onClick={() => galleryInputRef.current.click()}
+                  className="aspect-square rounded-xl border-2 border-dashed border-accent/30 hover:border-accent flex flex-col items-center justify-center text-center p-2 cursor-pointer transition-colors text-beige/60 hover:text-accent bg-primary/40"
+                >
+                  <Plus className="w-6 h-6 mb-1" />
+                  <span className="text-xs font-semibold">Ajouter</span>
+                </div>
               </div>
             </div>
 
@@ -405,7 +512,10 @@ export default function Admin() {
                 whileTap={{ scale: 0.98 }}
               >
                 {isSubmitting ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <span>Upload des images ({galleryFiles.length + (coverFile ? 1 : 0)})...</span>
+                  </div>
                 ) : (
                   <>
                     {editingId ? <Edit className="w-5 h-5" /> : <UploadCloud className="w-5 h-5" />} 
@@ -451,7 +561,7 @@ export default function Admin() {
                     <p className="text-sm text-beige/70 truncate">{hike.location}</p>
                     <p className="text-xs text-beige/50 mt-1">
                         Difficulté: <span className="font-semibold text-accent">{hike.difficulty}</span> | 
-                        Distance: {hike.distance} | 
+                        Photos: <span className="font-semibold text-accent">{hike.images?.length || 1}</span> | 
                         Durée: {hike.duration}
                     </p>
                   </div>
