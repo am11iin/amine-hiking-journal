@@ -26,8 +26,29 @@ export default function Contact() {
     const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_x2sifvk";
 
     emailjs.init(publicKey);
+
+    const formData = new FormData(form.current);
+    const userName = (formData.get("user_name") || "").trim();
+    const userEmail = (formData.get("user_email") || "").trim();
+    const message = (formData.get("message") || "").trim();
+
+    const templateParams = {
+      // Variantes pour le nom
+      from_name: userName,
+      user_name: userName,
+      name: userName,
+
+      // Variantes pour l'adresse email
+      from_email: userEmail,
+      user_email: userEmail,
+      reply_to: userEmail,
+      email: userEmail,
+
+      // Message
+      message: message,
+    };
     
-    emailjs.sendForm(serviceId, templateId, form.current)
+    emailjs.send(serviceId, templateId, templateParams, publicKey)
       .then(() => {
         setSuccess(true);
         form.current.reset();
